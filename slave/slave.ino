@@ -1,16 +1,19 @@
 #include <MPR121.h>
 #include <Wire.h>
+#include <SoftwareSerial.h>
 
 #define numElectrodes 2
-
-#define LEDPIN 1
 #define INTERUPT_PIN 2
+
+SoftwareSerial mySerial(3, 1);   // RX, TX
+char message[2];
 
 void setup()
 {
   Serial.begin(115200);
   Serial.println("System started");
-  pinMode(LEDPIN, OUTPUT);
+
+  mySerial.begin(9600);
 
   Wire.begin();
 
@@ -57,12 +60,16 @@ void loop()
     for (int i = 0; i < numElectrodes; i++) {
       if (MPR121.isNewTouch(i)) {
         if (i == 0) {
-          digitalWrite(LEDPIN, HIGH);
+          Serial.println('1');
+          message[0] = '1';
+          mySerial.write(message, sizeof(message));
         }
 
       } else if (MPR121.isNewRelease(i)) {
         if (i == 1) {
-          digitalWrite(LEDPIN, LOW);
+          Serial.println('0');
+          message[0] = '2';
+          mySerial.write(message, sizeof(message));
         }
       }
     }
