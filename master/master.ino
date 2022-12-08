@@ -1,32 +1,28 @@
 #include <SoftwareSerial.h>
-#include <SoftwareSerial.h>
 
-#define LEDPIN 3
+#define rxPin 2
+#define txPin 3
 
-SoftwareSerial mySerial(0, 1);   // RX, TX
-
-char message[2];
+SoftwareSerial mySerial(rxPin, txPin);   // RX, TX
 
 void setup() 
 {
-  Serial.begin(9600);
+  pinMode(rxPin, INPUT);
+  pinMode(txPin, OUTPUT);
+
+  Serial.begin(115200);
   Serial.println("System started");
 
   // UART
   mySerial.begin(9600);
-
-  pinMode(LEDPIN, OUTPUT);
 }
 
 void loop() 
 {
-  mySerial.readBytes(message, sizeof(message));
-  Serial.println(message);
 
-  if (message[0] == '1') {
-    digitalWrite(LEDPIN, HIGH); // switch LED On
+  while (mySerial.available() > 0) {
+    char inByte = mySerial.read();
+    Serial.println(inByte);
   }
-  else if (message[0] == '2') {
-    digitalWrite(LEDPIN, LOW);  // switch LED Off
-  }
+
 }
