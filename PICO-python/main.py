@@ -3,6 +3,10 @@ from lib import mpr121
 from encoding import electrode_uart_encoding
 import time
 
+# Constants
+BUFFER_SIZE = 50
+MA_THRESHOLD = 0.1  # Moving average threshold
+
 # UART communication
 uart1 = UART(1, baudrate=9600, tx=Pin(4), rx=Pin(5), bits=8, parity=None, stop=1)
 
@@ -13,7 +17,10 @@ time.sleep_ms(100)
 mpr = mpr121.MPR121(i2c, 0x5A)
 mpr.set_thresholds(10, 8)
 
-last = 0
+# Initialize buffer of zeros for each electrode
+buffer = dict()
+for i in range(12):
+    buffer[i] = [0] * BUFFER_SIZE
 
 # MPR121 electrodes to Pico Pins mapping
 # Electrode: Pico Pin
@@ -26,23 +33,27 @@ for i in range(10, 22):
     electrode += 1
 
 
-def check(pin):
-    global uart1
-    global last
+while True:
     touched = mpr.touched()
-    diff = last ^ touched
     for i in range(12):
-        if diff & (1 << i):
-            if touched & (1 << i):
-                print('Key {} pressed'.format(i))
-                leds[i].high()
-                uart1.write(bytes(electrode_uart_encoding[i]['ON'], 'utf-8'))
-            else:
-                print('Key {} released'.format(i))
-                leds[i].low()
-                uart1.write(bytes(electrode_uart_encoding[i]['OFF'], 'utf-8'))
-    last = touched
 
+        # Update buffer values
+        if touched & (1 << i):
+            print("Buffer length = ", len(buffer[i]))
+            buffer[i].insert(0, 1)  # Insert 1 to the index 0
+            buffer[i].pop()
+        else:
+            buffer[i].insert(0, 0)  # Insert 0 to the index 0
+            buffer[i].pop()
 
-i = Pin(8, Pin.IN, Pin.PULL_UP)
-i.irq(check, Pin.IRQ_FALLING)
+        # Average of the i-th electrode buffer
+        avg = sum(buffer[i]) / len(buffer[i])
+
+        # Update the led/sound state if needed
+        # TODO: Store previous state and update only when triggered
+        if avg > MA_THRESHOLD:
+            leds[i].high()
+            uart1.write(bytes(electrode_uart_encoding[i]['ON'], 'utf-8'))
+        else:
+            leds[i].low()
+            uart1.write(bytes(electrode_uart_encoding[i]['OFF'], 'utf-8'))
