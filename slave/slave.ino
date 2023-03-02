@@ -13,6 +13,8 @@ MPR121_type MPR121_1;
 
 SoftwareSerial mySerial;
 
+uint8_t LEDS[numElectrodes] = {13, 0, 12, 0, 14, 27, 0, 26, 0, 25, 0, 33};
+
 void setup()
 {
   Serial.begin(115200);
@@ -62,6 +64,14 @@ void setup()
   MPR121.setTouchThreshold(40);
   MPR121.setReleaseThreshold(20);
   MPR121.updateTouchData();
+
+  for (uint8_t i = 0; i < numElectrodes; i++)
+  {
+    if (LEDS[i] != 0)
+    {
+      pinMode(LEDS[i], OUTPUT); // set ESP32 pin to output mode
+    }
+  }
 }
 
 void loop()
@@ -70,18 +80,36 @@ void loop()
   if (MPR121.touchStatusChanged())
   {
     MPR121.updateTouchData();
-    for (int i = 0; i < numElectrodes; i++)
+    for (uint8_t i = 0; i < numElectrodes; i++)
     {
       if (MPR121.isNewTouch(i))
       {
-        Serial.println(i);
+        // Serial.println(i);
         mySerial.write(i);
+        ledOn(i);
       }
       else if (MPR121.isNewRelease(i))
       {
-        Serial.println(i + 12);
+        // Serial.println(i + 12);
         mySerial.write(i + 12);
+        ledOff(i);
       }
     }
+  }
+}
+
+void ledOn(uint8_t pin)
+{
+  if (LEDS[pin] != 0)
+  {
+    digitalWrite(LEDS[pin], HIGH);
+  }
+}
+
+void ledOff(uint8_t pin)
+{
+  if (LEDS[pin] != 0)
+  {
+    digitalWrite(LEDS[pin], LOW);
   }
 }
