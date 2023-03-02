@@ -17,12 +17,22 @@
 
 VS10XX vs10xx(VS_XCS, VS_XDCS, VS_DREQ, VS_RESET, VS_SS);
 
-#define MYPORT_TX 12
-#define MYPORT_RX 13
+// UART communication
+#define numOctaves 4
 
-SoftwareSerial mySerial;
+uint8_t RxTx[numOctaves][2] = {
+    {13, 12}, // RX, TX
+    {14, 27},
+    {26, 25},
+    {33, 32}};
 
-uint8_t message[1];
+SoftwareSerial *connections[numOctaves] = {
+    new SoftwareSerial(),
+    new SoftwareSerial(),
+    new SoftwareSerial(),
+    new SoftwareSerial()};
+
+uint8_t message[numOctaves][1];
 
 void setup()
 {
@@ -30,14 +40,19 @@ void setup()
   Serial.begin(115200);
   Serial.println("System started");
 
-  mySerial.begin(38400, SWSERIAL_8N1, MYPORT_RX, MYPORT_TX, false);
-  if (!mySerial)
-  { // If the object did not initialize, then its configuration is invalid
-    Serial.println("Invalid SoftwareSerial pin configuration, check config");
-    while (1)
-    { // Don't continue with invalid configuration
-      delay(1000);
+  // Initialize all 4 UART connections
+  for (int i = 0; i < numOctaves; i++)
+  {
+    connections[i]->begin(38400, SWSERIAL_8N1, RxTx[i][0], RxTx[i][1], false);
+    if (!connections[i])
+    { // If the object did not initialize, then its configuration is invalid
+      Serial.println("Invalid SoftwareSerial pin configuration, check config");
+      while (1)
+      { // Don't continue with invalid configuration
+        delay(1000);
+      }
     }
+    message[i][0] = -1;
   }
 
   Serial.println("Initialising VS10xx");
@@ -51,20 +66,26 @@ void setup()
 
 void loop()
 {
-  mySerial.readBytes(message, sizeof(message));
-
-  if (message[0] >= 0 && message[0] < 12)
+  for (uint8_t i = 0; i < numOctaves; i++)
   {
-    Serial.println(message[0]);
-    uint8_t note = message[0] + OCTAVE_1;
-    vs10xx.noteOn(0, note, 127);
-  }
-  else if (message[0] >= 12)
-  {
-    Serial.println(message[0]);
-    uint8_t note = message[0] - 12 + OCTAVE_1;
-    vs10xx.noteOff(0, note, 127);
-  }
+    if (connections[i]->available())
+    {
+      connections[i]->readBytes(message[i], sizeof(message[i]));
 
-  message[0] = -1;
+      if (message[i][0] >= 0 && message[i][0] < 12)
+      {
+        Serial.println(message[i][0]);
+        uint8_t note = message[i][0] + OCTAVE_1;
+        vs10xx.noteOn(0, note, 127);
+      }
+      else if (message[i][0] >= 12)
+      {
+        Serial.println(message[i][0]);
+        uint8_t note = message[i][0] - 12 + OCTAVE_1;
+        vs10xx.noteOff(0, note, 127);
+      }
+
+      message[i][0] = -1;
+    }
+  }
 }
