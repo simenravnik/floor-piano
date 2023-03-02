@@ -2,3 +2,6 @@
 .idea
 venv
 .vscode
+esp32.svd
+debug.cfg
+debug_custom.json
