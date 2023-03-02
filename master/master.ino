@@ -75,13 +75,13 @@ void loop()
       if (message[i][0] >= 0 && message[i][0] < 12)
       {
         Serial.println(message[i][0]);
-        uint8_t note = message[i][0] + OCTAVE_1;
+        uint8_t note = message[i][0] + (36 + (12 * i));
         vs10xx.noteOn(0, note, 127);
       }
       else if (message[i][0] >= 12)
       {
         Serial.println(message[i][0]);
-        uint8_t note = message[i][0] - 12 + OCTAVE_1;
+        uint8_t note = message[i][0] - 12 + (36 + (12 * i));
         vs10xx.noteOff(0, note, 127);
       }
 
