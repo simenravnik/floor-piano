@@ -3,13 +3,13 @@
 #include "src/espsoftwareserial/src/SoftwareSerial.h"
 
 // MPR121
-#define INTERUPT_PIN 33
+#define INTERUPT_PIN 4
 #define numElectrodes 12
 
 MPR121_type MPR121_1;
 
-#define MYPORT_TX 12
-#define MYPORT_RX 13
+#define MYPORT_TX 17
+#define MYPORT_RX 16
 
 SoftwareSerial mySerial;
 
