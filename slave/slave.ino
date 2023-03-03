@@ -2,6 +2,55 @@
 #include "src/MPR/MPR121.h"
 #include "src/espsoftwareserial/src/SoftwareSerial.h"
 
+/**
+    Wiring (slave):
+
+    1. MPR121
+
+    ------------------------------------
+    | MPR121  |  ESP32  | ESP32 (GPIO) |
+    ------------------------------------
+    |   IRQ   |   D4    |     4        |
+    |   SCL   |   D22   |     22       |
+    |   SDA   |   D21   |     21       |
+    |   ADD   |   -     |     -        |
+    |   3.3V  |   3.3V  |     3.3V     |
+    |   GND   |   GND   |     GND      |
+    ------------------------------------
+
+    2. UART
+
+    ------------------------------------
+    |  UART   |  ESP32  | ESP32 (GPIO) |
+    ------------------------------------
+    |   RX    |   RX2   |     16       |
+    |   TX    |   TX2   |     17       |
+    ------------------------------------
+
+    3. LEDs
+
+    Electrodes from MPR121 that are connected to
+    GPIO pins which serves as outputs for LEDs.
+
+    --------------------------------------
+    | Electrode |  ESP32  | ESP32 (GPIO) |
+    --------------------------------------
+    |     0     |   D13   |     13       |
+    |     1     |    -    |      -       |
+    |     2     |   D12   |     12       |
+    |     3     |    -    |      -       |
+    |     4     |   D14   |     14       |
+    |     5     |   D27   |     27       |
+    |     6     |    -    |      -       |
+    |     7     |   D26   |     26       |
+    |     8     |    -    |      -       |
+    |     9     |   D25   |     25       |
+    |     10    |    -    |      -       |
+    |     11    |   D33   |     33       |
+    --------------------------------------
+
+**/
+
 // MPR121
 #define INTERUPT_PIN 4
 #define numElectrodes 12

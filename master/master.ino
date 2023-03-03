@@ -2,6 +2,62 @@
 #include <Wire.h>
 #include "src/espsoftwareserial/src/SoftwareSerial.h"
 
+/**
+    Wiring (master):
+
+    1. VS1003
+    ------------------------------------
+    | VS1003  |  ESP32  | ESP32 (GPIO) |
+    ------------------------------------
+    |   SCLK  |   D18   |     18       |
+    |   MISO  |   D19   |     19       |
+    |   MOSI  |   D23   |     23       |
+    |   XRST  |   D5    |     5        |
+    |   CS    |   D4    |     4        |
+    |   XDCS  |   RX2   |     16       |
+    |   DREQ  |   TX2   |     17       |
+    |   5V    |   3.3V  |     3.3V     |
+    |   GND   |   GND   |     GND      |
+    ------------------------------------
+
+    2. Octaves (UART)
+
+    Connect RX pins from slave controllers to TX pins on master controller,
+    and TX pins from slave controllers to master TX pins on master controller.
+
+    Octave 1:
+    ------------------------------------
+    | UART 1  |  ESP32  | ESP32 (GPIO) |
+    ------------------------------------
+    |   RX    |   D13   |     13       |
+    |   TX    |   D12   |     12       |
+    ------------------------------------
+
+    Octave 2:
+    ------------------------------------
+    | UART 2  |  ESP32  | ESP32 (GPIO) |
+    ------------------------------------
+    |   RX    |   D13   |     13       |
+    |   TX    |   D12   |     12       |
+    ------------------------------------
+
+    Octave 3:
+    ------------------------------------
+    | UART 3  |  ESP32  | ESP32 (GPIO) |
+    ------------------------------------
+    |   RX    |   D13   |     13       |
+    |   TX    |   D12   |     12       |
+    ------------------------------------
+
+    Octave 4:
+    ------------------------------------
+    | UART 4  |  ESP32  | ESP32 (GPIO) |
+    ------------------------------------
+    |   RX    |   D13   |     13       |
+    |   TX    |   D12   |     12       |
+    ------------------------------------
+**/
+
 // VS1003 pin definitions
 #define VS_XCS 4   // Control Chip Select Pin (for accessing SPI Control/Status registers)
 #define VS_XDCS 16 // Data Chip Select / BSYNC Pin
