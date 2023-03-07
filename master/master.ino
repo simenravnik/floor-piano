@@ -56,6 +56,15 @@
     |   RX    |   D13   |     13       |
     |   TX    |   D12   |     12       |
     ------------------------------------
+
+    1. Rotary Encoder
+    ------------------------------------
+    | VS1003  |  ESP32  | ESP32 (GPIO) |
+    ------------------------------------
+    |   CLK   |   D35   |     35       |
+    |   DT    |   D34   |     34       |
+    |   SW    |   D21   |     21       |
+    ------------------------------------
 **/
 
 // VS1003 pin definitions
@@ -90,6 +99,18 @@ SoftwareSerial *connections[numOctaves] = {
 
 uint8_t message[numOctaves][1];
 
+// Rotary Encoder
+#define CLK 34
+#define DT 35
+#define SW 39
+
+bool rotaryEncoderActive; // True or False
+unsigned long lastButtonPress = 0;
+uint8_t channel;
+
+int currentStateCLK;
+int lastStateCLK;
+
 void setup()
 {
 
@@ -115,6 +136,16 @@ void setup()
   // put your setup code here, to run once:
   vs10xx.initialiseVS10xx();
   delay(1000);
+
+  // Set encoder pins as inputs
+  pinMode(CLK, INPUT);
+  pinMode(DT, INPUT);
+  pinMode(SW, INPUT);
+
+  rotaryEncoderActive = false;
+  channel = 0;
+
+  lastStateCLK = digitalRead(CLK);
 }
 
 #define OCTAVE_1 48
@@ -122,6 +153,16 @@ void setup()
 
 void loop()
 {
+
+  // ROTARY ENCODER
+  checkButtonPressed();
+
+  if (rotaryEncoderActive)
+  {
+    updateEncoder();
+  }
+
+  // VS10xx
   for (uint8_t i = 0; i < numOctaves; i++)
   {
     if (connections[i]->available())
@@ -130,18 +171,63 @@ void loop()
 
       if (message[i][0] >= 0 && message[i][0] < 12)
       {
-        Serial.println(message[i][0]);
+        // Serial.println(message[i][0]);
         uint8_t note = message[i][0] + (36 + (12 * i));
-        vs10xx.noteOn(0, note, 127);
+        vs10xx.noteOn(channel, note, 127);
       }
       else if (message[i][0] >= 12)
       {
-        Serial.println(message[i][0]);
+        // Serial.println(message[i][0]);
         uint8_t note = message[i][0] - 12 + (36 + (12 * i));
-        vs10xx.noteOff(0, note, 127);
+        vs10xx.noteOff(channel, note, 127);
       }
 
       message[i][0] = -1;
     }
   }
+}
+
+void checkButtonPressed()
+{
+  // Update rotary encoder state when the button was pressed
+  if (digitalRead(SW) == LOW)
+  {
+    // If the interval between last and current press is larger than 50ms
+    if (millis() - lastButtonPress > 50)
+    {
+      rotaryEncoderActive = !rotaryEncoderActive;
+    }
+    lastButtonPress = millis();
+  }
+}
+
+void updateEncoder()
+{
+  // Read the current state of CLK
+  currentStateCLK = digitalRead(CLK);
+
+  // If last and current state of CLK are different, then pulse occurred
+  // React to only 1 state change to avoid double count
+  if (currentStateCLK != lastStateCLK && currentStateCLK == 1)
+  {
+
+    // If the DT state is different than the CLK state then
+    // the encoder is rotating CCW so decrement
+    if (digitalRead(DT) != currentStateCLK)
+    {
+      channel = (channel - 1) % 16;
+      if (channel < 0)
+      {
+        channel = 0;
+      }
+    }
+    else
+    {
+      // Encoder is rotating CW so increment
+      channel = (channel + 1) % 16;
+    }
+  }
+
+  // Remember last CLK state
+  lastStateCLK = currentStateCLK;
 }
