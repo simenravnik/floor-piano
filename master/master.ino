@@ -106,7 +106,8 @@ uint8_t message[numOctaves][1];
 
 bool rotaryEncoderActive; // True or False
 unsigned long lastButtonPress = 0;
-uint8_t channel;
+int8_t channel;
+int8_t prevChannel;
 
 int currentStateCLK;
 int lastStateCLK;
@@ -144,6 +145,7 @@ void setup()
 
   rotaryEncoderActive = false;
   channel = 0;
+  prevChannel = 0;
 
   lastStateCLK = digitalRead(CLK);
 }
@@ -226,6 +228,20 @@ void updateEncoder()
       // Encoder is rotating CW so increment
       channel = (channel + 1) % 16;
     }
+
+    // Turn off currently playing notes
+    for (int j = 0; j < 12; j++)
+    {
+      uint8_t noteOctave1 = j + 36;
+      uint8_t noteOctave2 = j + 36 + (12 * 1);
+      uint8_t noteOctave3 = j + 36 + (12 * 2);
+      uint8_t noteOctave4 = j + 36 + (12 * 2);
+      vs10xx.noteOff(prevChannel, noteOctave1, 127);
+      vs10xx.noteOff(prevChannel, noteOctave2, 127);
+      vs10xx.noteOff(prevChannel, noteOctave3, 127);
+      vs10xx.noteOff(prevChannel, noteOctave4, 127);
+    }
+    prevChannel = channel;
   }
 
   // Remember last CLK state
