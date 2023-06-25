@@ -11,16 +11,15 @@
 
 ![Piano Schematics](./docs/schematics/floor-piano.png)
 # Installation instructions
-
-TODO
 # Slave
 
-TODO
+Upload [`slave/slave.ino`](slave/slave.ino) to 4 ESP32 boards and connect it to master according to schematics. The slaves are mutually **independent**, allowing each of them to work independently also when others are not connected to the master. For more detailed wiring look at the source `slave.ino` file.
 
 # Master
 
-## Wiring
+Upload [`master/master.ino`](master/master.ino) to 1 ESP32 board and connect the peripheral devices according to schematics. For more detailed wiring look at the source `master.ino` file.
 
+## Wiring
 
 ### 1. VS1003
 
